@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sparkle-compatible update feed for ProcessMonitor.
+  Feed URL (Info.plist SUFeedURL): https://raw.githubusercontent.com/yuraware/ProcessMonitor/main/appcast.xml
+
+  To publish a release:
+    1. Bump CFBundleShortVersionString in Support/Info.plist and add a CHANGELOG.md entry.
+    2. Run scripts/build.sh with the dmg option.
+    3. Upload dist/ProcessMonitor-<version>.dmg to a GitHub release tagged v<version>.
+    4. Add a new <item> at the top of the channel below with the DMG's byte length
+       (stat -f%z dist/ProcessMonitor-<version>.dmg). Once Sparkle signing keys exist,
+       add sparkle:edSignature from `sign_update`.
+-->
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>ProcessMonitor</title>
+    <link>https://github.com/yuraware/ProcessMonitor</link>
+    <description>Discover and control processes on Mac</description>
+    <language>en</language>
+
+    <item>
+      <title>Version 0.0.1</title>
+      <pubDate>Tue, 15 Sep 2026 00:00:00 +0000</pubDate>
+      <sparkle:version>1</sparkle:version>
+      <sparkle:shortVersionString>0.0.1</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+      <sparkle:releaseNotesLink>https://github.com/yuraware/ProcessMonitor/blob/main/CHANGELOG.md</sparkle:releaseNotesLink>
+      <description><![CDATA[
+        <h2>ProcessMonitor 0.0.1</h2>
+        <ul>
+          <li>Menu bar app with an Activity Monitor–style process table.</li>
+          <li>Columns: Process Name, % CPU, % GPU, Memory, Energy, PID, User.</li>
+          <li>Checkbox column to pick processes, then quit or force quit them one at a time.</li>
+          <li>Launch at login, offered on first launch and in Settings.</li>
+          <li>Samples processes only while the panel is open.</li>
+        </ul>
+      ]]></description>
+      <enclosure
+        url="https://github.com/yuraware/ProcessMonitor/releases/download/v0.0.1/ProcessMonitor-0.0.1.dmg"
+        length="1445502"
+        type="application/octet-stream" />
+    </item>
+  </channel>
+</rss>
