@@ -9,6 +9,7 @@ final class AppSettings: ObservableObject {
     private enum Keys {
         static let didCompleteOnboarding = "didCompleteOnboarding"
         static let refreshInterval = "refreshInterval"
+        static let groupByParent = "groupByParent"
     }
 
     static let appName = "ProcessMonitor"
@@ -38,6 +39,11 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(refreshInterval, forKey: Keys.refreshInterval) }
     }
 
+    /// Show each process together with its child processes as one collapsible group.
+    @Published var groupByParent: Bool {
+        didSet { defaults.set(groupByParent, forKey: Keys.groupByParent) }
+    }
+
     @Published var launchAtLogin: Bool {
         didSet {
             guard launchAtLogin != LaunchAtLogin.isEnabled else { return }
@@ -61,6 +67,7 @@ final class AppSettings: ObservableObject {
         didCompleteOnboarding = defaults.bool(forKey: Keys.didCompleteOnboarding)
         let storedInterval = defaults.double(forKey: Keys.refreshInterval)
         refreshInterval = storedInterval > 0 ? storedInterval : 2.0
+        groupByParent = defaults.object(forKey: Keys.groupByParent) as? Bool ?? true
         launchAtLogin = LaunchAtLogin.isEnabled
     }
 }

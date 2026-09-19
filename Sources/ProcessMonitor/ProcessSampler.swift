@@ -93,6 +93,7 @@ final class ProcessSampler: @unchecked Sendable {
 
             entries.append(ProcessEntry(
                 id: basic.pid,
+                parentID: basic.ppid,
                 name: nameInfo.name,
                 path: nameInfo.path,
                 user: userName(for: basic.uid),

@@ -62,34 +62,34 @@ struct ProcessListView: View {
             .background(RoundedRectangle(cornerRadius: 7).fill(Color(nsColor: .controlBackgroundColor)))
             .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color(nsColor: .separatorColor)))
             .frame(width: 240)
+            Toggle(isOn: Binding(
+                get: { model.settings.groupByParent },
+                set: { model.settings.groupByParent = $0 }
+            )) {
+                Image(systemName: "list.bullet.indent")
+            }
+            .toggleStyle(.button)
+            .help("Group processes with their child processes")
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
     }
 
     private var table: some View {
-        Table(model.filteredEntries, selection: $model.selection, sortOrder: $model.sortOrder) {
-            TableColumn("") { entry in
+        Table(model.rows, selection: $model.selection, sortOrder: $model.sortOrder) {
+            TableColumn("") { row in
                 Toggle("", isOn: Binding(
-                    get: { model.isChecked(entry.id) },
-                    set: { model.setChecked(entry.id, $0) }
+                    get: { model.isChecked(row) },
+                    set: { model.setChecked(row, $0) }
                 ))
                 .toggleStyle(.checkbox)
                 .labelsHidden()
-                .help("Select to quit")
+                .help(row.isGroup ? "Select the whole group to quit" : "Select to quit")
             }
             .width(22)
 
-            TableColumn("Process Name", value: \.name) { entry in
-                HStack(spacing: 6) {
-                    Image(nsImage: model.icon(for: entry.id))
-                        .resizable()
-                        .frame(width: 16, height: 16)
-                    Text(entry.name)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
-                .help(entry.path.isEmpty ? entry.name : entry.path)
+            TableColumn("Process Name", value: \.name) { row in
+                nameCell(row)
             }
             .width(min: 180, ideal: 240)
 
@@ -128,14 +128,67 @@ struct ProcessListView: View {
         }
         .contextMenu(forSelectionType: pid_t.self) { pids in
             if !pids.isEmpty {
-                Button(pids.allSatisfy(model.isChecked) ? "Uncheck" : "Check") {
-                    let check = !pids.allSatisfy(model.isChecked)
-                    for pid in pids {
-                        model.setChecked(pid, check)
+                Button(model.areChecked(pids) ? "Uncheck" : "Check") {
+                    model.setChecked(pids, !model.areChecked(pids))
+                }
+            }
+            let expandable = pids.filter(model.isExpandable)
+            if !expandable.isEmpty {
+                Button(expandable.allSatisfy(model.expanded.contains) ? "Collapse" : "Expand") {
+                    let expand = !expandable.allSatisfy(model.expanded.contains)
+                    for pid in expandable where model.expanded.contains(pid) != expand {
+                        model.toggleExpanded(pid)
                     }
                 }
             }
+            if model.isGrouped {
+                Divider()
+                Button("Expand All") {
+                    model.expandAll()
+                }
+                Button("Collapse All") {
+                    model.collapseAll()
+                }
+            }
         }
+    }
+
+    /// Name plus icon, indented for group members, with a disclosure chevron and member count for groups.
+    private func nameCell(_ row: ProcessRow) -> some View {
+        HStack(spacing: 6) {
+            if model.isGrouped {
+                if row.isGroup {
+                    Button {
+                        model.toggleExpanded(row.id)
+                    } label: {
+                        Image(systemName: row.isExpanded ? "chevron.down" : "chevron.right")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 12, height: 16)
+                    }
+                    .buttonStyle(.plain)
+                    .help(row.isExpanded ? "Collapse" : "Expand \(row.memberCount) child processes")
+                } else {
+                    Color.clear.frame(width: 12 + CGFloat(row.depth) * 16, height: 16)
+                }
+            }
+            Image(nsImage: model.icon(for: row.id))
+                .resizable()
+                .frame(width: 16, height: 16)
+            Text(row.name)
+                .lineLimit(1)
+                .truncationMode(.middle)
+            if row.isGroup, model.isGrouped {
+                Text("\(row.memberCount + 1)")
+                    .font(.caption2.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 1)
+                    .background(Capsule().fill(Color(nsColor: .quaternaryLabelColor)))
+                    .help(row.isExpanded ? "Showing own usage" : "Combined usage of \(row.memberCount + 1) processes")
+            }
+        }
+        .help(row.path.isEmpty ? row.name : row.path)
     }
 
     private var footer: some View {

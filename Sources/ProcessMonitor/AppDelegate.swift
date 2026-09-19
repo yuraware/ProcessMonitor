@@ -137,11 +137,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     /// Centers the panel horizontally under the status item, clamped to the screen.
     private func position(_ panel: NSPanel) {
-        guard let button = statusItem?.button, let buttonWindow = button.window else {
+        guard let buttonWindow = statusItem?.button?.window, let anchor = statusItemScreenFrame else {
             panel.center()
             return
         }
-        let anchor = buttonWindow.convertToScreen(button.convert(button.bounds, to: nil))
         let screen = buttonWindow.screen ?? NSScreen.main
         let visible = screen?.visibleFrame ?? anchor
         let size = panel.frame.size
@@ -150,6 +149,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         x = min(max(x, visible.minX + 8), visible.maxX - size.width - 8)
         let y = max(anchor.minY - size.height - 6, visible.minY + 8)
         panel.setFrameOrigin(NSPoint(x: x, y: y))
+    }
+
+    /// The status item button's frame in screen coordinates, if it is on screen.
+    private var statusItemScreenFrame: NSRect? {
+        guard let button = statusItem?.button, let window = button.window else { return nil }
+        return window.convertToScreen(button.convert(button.bounds, to: nil))
     }
 
     /// Sampling is tied to visibility: it runs only while the panel is on screen.
@@ -173,7 +178,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             .leftMouseDown,
             .rightMouseDown
         ]) { [weak self] _ in
-            Task { @MainActor in self?.closePanel() }
+            let location = NSEvent.mouseLocation
+            Task { @MainActor [weak self] in
+                // A click on our own status item can arrive here too. Leave it to the button's
+                // toggle action; closing here would make that action reopen the panel.
+                guard let self, statusItemScreenFrame?.contains(location) != true else { return }
+                closePanel()
+            }
         }
     }
 

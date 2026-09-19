@@ -4,6 +4,8 @@ import Foundation
 struct ProcessEntry: Identifiable, Hashable {
     /// The process id. Stable for the lifetime of the process.
     let id: pid_t
+    /// The parent process id. `0` for the kernel and launchd.
+    var parentID: pid_t
     var name: String
     var path: String
     var user: String
