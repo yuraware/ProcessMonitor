@@ -18,19 +18,23 @@ It is a Swift Package with no Xcode project. The `.app` bundle is assembled by a
 | `Sources/ProcessMonitor/ProcessMonitorApp.swift` | Entry point, plus the `--dump`, `--quit` and `--force-quit` diagnostic flags. |
 | `Sources/ProcessMonitor/AppDelegate.swift` | Status item, floating panel, Settings and Welcome windows. |
 | `Sources/ProcessMonitor/ProcessSampler.swift` | Samples processes and computes CPU %, memory and energy. |
-| `Sources/ProcessMonitor/ProcessListModel.swift` | Observable table state, sampling timer, checked rows and quit flow. |
+| `Sources/ProcessMonitor/ProcessRow.swift` | Table row type and `ProcessTree`, which groups processes under their top-most ancestor. |
+| `Sources/ProcessMonitor/ProcessListModel.swift` | Observable table state, sampling timer, grouping, checked rows and quit flow. |
 | `Sources/ProcessMonitor/ProcessTerminator.swift` | Quits processes strictly one at a time. |
 | `Sources/ProcessMonitor/ProcessListView.swift` | SwiftUI table and footer. |
 | `Sources/ProcessMonitor/SettingsView.swift` | Settings and first-launch Welcome views. |
 | `Sources/ProcessMonitor/AppSettings.swift` | `UserDefaults` settings and `SMAppService` launch at login. |
 | `Support/Info.plist` | Bundle metadata. `LSUIElement` hides the Dock icon. Holds the version. |
+| `Tests/ProcessMonitorTests/` | XCTest coverage for the grouping logic (`swift test`). |
 | `scripts/` | `build.sh`, `lint.sh`, `make-icon.sh`. |
 | `appcast.xml` | Sparkle-compatible update feed. |
+| `.github/workflows/ci.yml` | GitHub Actions: lint, build, upload `.app` and DMG artifacts, attach the DMG to the release on `v*` tags. |
 
 ## Commands
 
 ```bash
 swift build                      # debug compile
+swift test                       # unit tests
 scripts/build.sh                 # release build -> dist/ProcessMonitor.app (ad-hoc signed)
 scripts/build.sh --install       # also copy to /Applications and launch
 scripts/build.sh --dmg           # also create dist/ProcessMonitor-<version>.dmg
@@ -46,12 +50,12 @@ scripts/lint.sh --fix            # auto-format and auto-correct
 - **Quit sequentially.** All quitting goes through `ProcessTerminator`, which waits for each process to exit before signalling the next one.
 - **Public APIs only.** No private frameworks and no entitlements that require root. GPU % stays "—" until a public source exists.
 - **Launch at login uses `SMAppService.mainApp`.** It only works from a real `.app` bundle, not from `swift run`.
-- Run `scripts/lint.sh` and `scripts/build.sh` before finishing a change. Both must succeed.
+- Run `scripts/lint.sh` and `scripts/build.sh` before finishing a change. Both must succeed. CI runs the same scripts on a macOS runner for every push and pull request.
 - Keep `CHANGELOG.md` updated under `[Unreleased]` for user-visible changes.
 
 ## Releasing
 
 1. Bump `CFBundleShortVersionString` in `Support/Info.plist`.
 2. Move `[Unreleased]` entries in `CHANGELOG.md` under the new version.
-3. Run `scripts/build.sh --dmg` and upload the DMG to a GitHub release tagged `v<version>`.
-4. Add an `<item>` to the top of `appcast.xml` with the DMG byte length.
+3. Commit, tag `v<version>` and push the tag. CI builds a universal DMG, creates the GitHub release and attaches it. The Release job fails if the tag does not match the plist version.
+4. Add an `<item>` to the top of `appcast.xml` with the DMG byte length, printed at the end of the Release job log.

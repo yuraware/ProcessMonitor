@@ -5,11 +5,11 @@
 
   To publish a release:
     1. Bump CFBundleShortVersionString in Support/Info.plist and add a CHANGELOG.md entry.
-    2. Run scripts/build.sh with the dmg option.
-    3. Upload dist/ProcessMonitor-<version>.dmg to a GitHub release tagged v<version>.
-    4. Add a new <item> at the top of the channel below with the DMG's byte length
-       (stat -f%z dist/ProcessMonitor-<version>.dmg). Once Sparkle signing keys exist,
-       add sparkle:edSignature from `sign_update`.
+    2. Commit, tag v<version> and push the tag. The CI workflow builds the DMG,
+       creates the GitHub release and attaches ProcessMonitor-<version>.dmg to it.
+    3. Add a new <item> at the top of the channel below with the DMG's byte length,
+       printed at the end of the Release job log (or stat -f%z on a local DMG).
+       Once Sparkle signing keys exist, add sparkle:edSignature from `sign_update`.
 -->
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
