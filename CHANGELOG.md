@@ -6,6 +6,18 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Processes are grouped with their child processes under one collapsible row. A collapsed group shows the
+  combined CPU, memory and energy of the whole group and sorts by those totals; click ▸ to expand it and see
+  each member. Checking a group checks every member, so a whole app can be quit in one go.
+- "Expand", "Collapse", "Expand All" and "Collapse All" in the table's context menu.
+- Toggle in the panel header and in Settings to switch grouping off. Searching always shows a flat list.
+- GitHub Actions workflow that lints and builds on every push and pull request, publishes the `.app` and DMG as workflow artifacts, and attaches the DMG to the GitHub release for `v*` tags.
+
+### Fixed
+- Clicking the menu bar icon while the panel was open reopened it instead of hiding it.
+- Changing the refresh interval in Settings applied the previous value instead of the newly chosen one.
+
 ## [0.0.1] - 2026-09-15
 
 ### Added

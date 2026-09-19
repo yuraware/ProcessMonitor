@@ -18,6 +18,11 @@ let package = Package(
                 .linkedFramework("SwiftUI"),
                 .linkedFramework("ServiceManagement")
             ]
+        ),
+        .testTarget(
+            name: "ProcessMonitorTests",
+            dependencies: ["ProcessMonitor"],
+            path: "Tests/ProcessMonitorTests"
         )
     ]
 )
